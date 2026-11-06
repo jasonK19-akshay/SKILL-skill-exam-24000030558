@@ -1,0 +1,45 @@
+name: SKILL-IN-SEM II
+
+services:
+  postgresdb:
+    image: postgres:16-alpine
+    container_name: postgresdb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: Skill-exam-2400030558
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Skill-exam-2400030558"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - microservices-network
+
+  exam-service:
+    image: jas0nakshay/docker-skill-exam-2400030558:latest
+    build:
+      context: ./SpringBootProject
+      dockerfile: backend.Dockerfile
+    container_name: exam-service
+    ports:
+      - "9001:8001"
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - microservices-network
+
+volumes:
+  postgres_data:
+
+networks:
+  microservices-network:
+    driver: bridge
